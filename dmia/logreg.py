@@ -4,25 +4,15 @@ from pathlib import Path
 from abc import ABC
 
 import numpy as np
+from matplotlib import pyplot as plt
+
+from dmia.utils import sigmoid
 
 strLogFileName = Path(__file__).name
 logging.basicConfig(level=logging.INFO,
                     filename=f"logs/{strLogFileName}.log",
                     filemode="w",
                     format="%(asctime)s - %(levelname)s - %(funcName)s: %(lineno)d - %(message)s")
-
-
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
-
-
-def loss(h, y):
-    return (-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
-
-
-def add_intercept(X):
-    intercept = np.ones((X.shape[0], 1))
-    return np.concatenate((intercept, X), axis=1)
 
 
 class BaseLG(ABC):
@@ -36,6 +26,8 @@ class BaseLG(ABC):
     fit_interception: bool = True  ## Добавление константы
     verbose: bool = True
     beta: np.ndarray
+    _loss_by_iter = []  ## Список значений функции потерь по итерациям
+    num_iter: int = 0  ## Количество фактически совершенных итераций
 
 
 class RegLogReg(BaseLG):
@@ -74,17 +66,17 @@ class RegLogReg(BaseLG):
         # инициализация функции потерь и весов признаков
         l_prev = np.inf
         self.beta = np.zeros(X.shape[1])
-
         # реализация градиентного спуска
-        for i in range(int(self.max_iter)):
+        for self.num_iter in range(int(self.max_iter)):
             y_pred = sigmoid(np.dot(X, self.beta))
             loss = self._lfl(X, y, y_pred)
             if l_prev - loss < self.tol:
                 return
             l_prev = loss
-            self.beta -= self.lr * self._vector_gradient(X, y, y_pred)
+            self._loss_by_iter.append(loss)
+            self.beta = self.beta - self.lr * self._vector_gradient(X, y, y_pred)
             if self.verbose:
-                info_str = f'Iteration {i}, loss {round(l_prev, 3)}, beta {np.round(self.beta, 3)}'
+                info_str = f'Iteration {self.num_iter}, loss {round(l_prev, 3)}, beta {np.round(self.beta.astype(float), 3)}'
                 print(info_str)
                 logging.info(info_str)
 
@@ -135,3 +127,12 @@ class RegLogReg(BaseLG):
         вычисление прогноза
         '''
         return (self.predict_proba(X) >= threshold).astype(int)
+
+    def loss_visualize(self, filename='graph', str_roc_auc_score=.01):
+        print(f'AUC-ROC on test sample:{str_roc_auc_score}')
+        plt.plot(range(len(self._loss_by_iter)), self._loss_by_iter)
+        plt.xticks(np.arange(0, np.round(self.num_iter, -2), step=50))
+        plt.xlabel('Number of iterations')
+        plt.ylabel('loss-function')
+        plt.title(f'roc-auc score={str_roc_auc_score} on {self.num_iter} iterations')
+        plt.savefig(f'./assets/{filename}.png')
