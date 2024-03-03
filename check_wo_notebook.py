@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from dmia.logreg import RegLogReg
+from _work.experiments.exp08.dmia.logreg import RegLogReg
 
 import logging
 
