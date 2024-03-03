@@ -42,12 +42,13 @@ class LRBase(ABC):
     def probe(self, X):
         pass
 
-    def plot_loss_history(self, write_to_file=True):
+    def plot_loss_history(self, roc_auc_score_value=None, write_to_file=True):
         if self.verbose:
             iterations = list(range(1, len(self.loss_history) + 1))
             fig = go.Figure(data=go.Scatter(x=iterations, y=self.loss_history, mode='lines'))
+            add_text = '' if not roc_auc_score_value else f'ROC-AUC score:{round(roc_auc_score_value, 3)}'
             fig.update_layout(title=f'Loss History. Number of iteration: {self.fact_iterations}' +
-                                    f'. Final loss: {round(self.loss_history[-1], self.precision)}',
+                                    f'. Final loss: {round(self.loss_history[-1], 3)} ' + add_text,
                               xaxis_title='Iterations', yaxis_title='Loss')
             if write_to_file:
                 fig.write_image("assets/" + self.filename + ".png")
@@ -194,7 +195,7 @@ def data1_experiment():
 
     print("Theta:", model.theta)
 
-    model.plot_loss_history()
+    model.plot_loss_history(roc_auc_score_value=result)
 
 
 def data2_experiment():

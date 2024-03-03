@@ -4,8 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from _work.experiments.exp08.dmia.logreg import RegLogReg
-
+from rlr import RegLogReg
 import logging
 
 strFileName = 'RegLogReg_01'
@@ -19,7 +18,7 @@ logging.basicConfig(level=logging.INFO,
 #  Загрузка данных и простейшее EDA  #
 ######################################
 
-data = pd.read_csv('data/bankloan.csv', sep=';', decimal=',', engine='pyarrow')
+data = pd.read_csv('../../../data/bankloan.csv', sep=';', decimal=',', engine='pyarrow')
 shp = data.shape
 print(f'Data shape: {shp}', f'\nColumns: {data.columns.tolist()}')
 print(data.info())
